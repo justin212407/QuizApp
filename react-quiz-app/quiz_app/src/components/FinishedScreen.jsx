@@ -1,7 +1,27 @@
 import React from "react";
 
-const FinishedScreen = ({ username, quizTotalScore, studentScore }) => {
+const FinishedScreen = ({
+  quizTotalScore,
+  studentScore,
+  setLoadingState,
+  setQuestionIndex,
+  setSelectedOption,
+  setCorrectOption,
+  setStudentScore,
+  setUsername,
+}) => {
   const percentage = (studentScore / quizTotalScore) * 100;
+  const username = localStorage.getItem("username");
+
+  function restartQuiz() {
+    setLoadingState("ready");
+    setQuestionIndex(0);
+    setSelectedOption(null);
+    setCorrectOption(0);
+    setStudentScore(0);
+    setUsername("");
+    localStorage.removeItem("username");
+  }
   return (
     <div>
       <>
@@ -13,7 +33,9 @@ const FinishedScreen = ({ username, quizTotalScore, studentScore }) => {
         </p>
         <p className="highscore">(HighScore: {studentScore} points)</p>
 
-        <button className=" btn btn-ui">Restart Quiz</button>
+        <button className=" btn btn-ui" onClick={restartQuiz}>
+          Restart Quiz
+        </button>
       </>
     </div>
   );

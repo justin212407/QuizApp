@@ -8,6 +8,9 @@ import api from "../api";
 import Question from "./components/Question";
 import NextButton from "./components/NextButton";
 import FinishedScreen from "./components/FinishedScreen";
+import Progress from "./components/Progress";
+import Footer from "./components/Footer";
+import Timer from "./components/Timer";
 
 const App = () => {
   const [loadingState, setLoadingState] = useState("loading");
@@ -17,17 +20,36 @@ const App = () => {
   const [questionIndex, setQuestionIndex] = useState(0);
   const [selectedOption, setSelectedOption] = useState(null);
   const [correctOption, setCorrectOption] = useState(0);
+  const [timeRemaining, setTimeRemaining] = useState(null);
   const [studentScore, setStudentScore] = useState(0);
+  const secondsPerQuestion = 10;
   const scorePerQues = 5;
   const numQues = questions.length;
   const quizTotalScore = numQues * scorePerQues;
 
-  const studentQuiz = {
-    username: username,
-    score: studentScore,
-  };
+  function getQuestion() {
+    api
+      .get("questions")
+      .then((res) => {
+        console.log(res.data);
+        setQuestions(res.data);
+      })
+      .catch((err) => {
+        console.log(err.message);
+      });
+  }
 
-  function submitQuizToApi() {
+  function reloadPage() {
+    setLoadingState("finished");
+    getQuestion();
+    submitQuizToApi(studentScore);
+  }
+
+  function submitQuizToApi(updatedScore) {
+    const studentQuiz = {
+      username: localStorage.getItem("username"),
+      score: updatedScore,
+    };
     api
       .post("submit_quiz/", studentQuiz)
       .then((res) => console.log(res.data))
@@ -35,6 +57,9 @@ const App = () => {
   }
 
   useEffect(function () {
+    if (localStorage.getItem("username")) {
+      return reloadPage();
+    }
     api
       .get("questions")
       .then((res) => {
@@ -51,7 +76,6 @@ const App = () => {
   return (
     <div className="app">
       <Header />
-      <h4>Score: {studentScore}</h4>
       <Main>
         {loadingState === "loading" && <Loader />}
         {error && <Error error={error} />}
@@ -62,37 +86,57 @@ const App = () => {
             numQues={numQues}
             key={numQues}
             setLoadingState={setLoadingState}
+            setTimeRemaining={setTimeRemaining}
+            secondsPerQuestion={secondsPerQuestion}
           />
         )}
 
         {loadingState == "active" && (
           <>
+            <Progress
+              questionIndex={questionIndex}
+              username={username}
+              numQues={numQues}
+            />
             <Question
               selectedOption={selectedOption}
               setSelectedOption={setSelectedOption}
               question={questions[questionIndex]}
               setCorrectOption={setCorrectOption}
             />
-
-            <NextButton
-              selectedOption={selectedOption}
-              setQuestionIndex={setQuestionIndex}
-              setSelectedOption={setSelectedOption}
-              numQues={numQues}
-              questionIndex={questionIndex}
-              correctOption={correctOption}
-              setStudentScore={setStudentScore}
-              setLoadingState={setLoadingState}
-              submitQuizToApi={submitQuizToApi}
-            />
+            <Footer>
+              <Timer
+                timeRemaining={timeRemaining}
+                setTimeRemaining={setTimeRemaining}
+                setLoadingState={setLoadingState}
+                submitQuizToApi={submitQuizToApi}
+                studentScore={studentScore}
+              />
+              <NextButton
+                selectedOption={selectedOption}
+                setQuestionIndex={setQuestionIndex}
+                setSelectedOption={setSelectedOption}
+                numQues={numQues}
+                questionIndex={questionIndex}
+                correctOption={correctOption}
+                setStudentScore={setStudentScore}
+                setLoadingState={setLoadingState}
+                submitQuizToApi={submitQuizToApi}
+              />
+            </Footer>
           </>
         )}
 
         {loadingState == "finished" && (
           <FinishedScreen
-            username={username}
             quizTotalScore={quizTotalScore}
             studentScore={studentScore}
+            setLoadingState={setLoadingState}
+            setQuestionIndex={setQuestionIndex}
+            setSelectedOption={setSelectedOption}
+            setCorrectOption={setCorrectOption}
+            setStudentScore={setStudentScore}
+            setUsername={setUsername}
           />
         )}
       </Main>

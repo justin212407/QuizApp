@@ -2,7 +2,14 @@ import React, { useState } from "react";
 import api from "../../api";
 import Error from "./Error";
 
-const StartScreen = ({ numQues, username, setUsername, setLoadingState }) => {
+const StartScreen = ({
+  numQues,
+  username,
+  setUsername,
+  setLoadingState,
+  setTimeRemaining,
+  secondsPerQuestion,
+}) => {
   const studentUsername = { username: username };
   const [error, setError] = useState(null);
 
@@ -13,6 +20,7 @@ const StartScreen = ({ numQues, username, setUsername, setLoadingState }) => {
         console.log(res.data);
         setLoadingState("active");
         localStorage.setItem("username", username);
+        setTimeRemaining(secondsPerQuestion * numQues);
       })
       .catch((err) => {
         const error = err.response?.data?.error || "An error occurred";

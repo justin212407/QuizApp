@@ -1,4 +1,5 @@
 import React from "react";
+import api from "../../api";
 
 const NextButton = ({
   selectedOption,
@@ -13,9 +14,22 @@ const NextButton = ({
 }) => {
   if (selectedOption === null) return null;
 
+  function NextQuestion() {
+    setQuestionIndex((curr) => curr + 1);
+    if (selectedOption === correctOption) {
+      setStudentScore((curr) => curr + 5);
+    }
+    setSelectedOption(null);
+  }
+
   function submitQuiz() {
     setLoadingState("finished");
-    submitQuizToApi();
+
+    setStudentScore((curr) => {
+      const updatedScore = selectedOption === correctOption ? curr + 5 : curr;
+      submitQuizToApi(updatedScore);
+      return updatedScore;
+    });
   }
 
   if (questionIndex === numQues - 1)
@@ -26,16 +40,7 @@ const NextButton = ({
     );
 
   return (
-    <button
-      className="btn btn-ui"
-      onClick={() => {
-        setQuestionIndex((prev) => prev + 1);
-        if (selectedOption === correctOption) {
-          setStudentScore((curr) => curr + 5);
-        }
-        setSelectedOption(null);
-      }}
-    >
+    <button className="btn btn-ui" onClick={NextQuestion}>
       Next
     </button>
   );

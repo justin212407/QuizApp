@@ -22,10 +22,20 @@ def has_taken_quiz(request):
 
 @api_view(['POST'])
 def submit_quiz(request):
-    username =request.data.get("username")
-    username = username.upper()
+    username = request.data.get("username").upper()
     score = request.data.get("score")
-    student = student.object.get(username=username)
-    student.score =score
+
+    try:
+        student = Student.objects.get(username=username)
+    except Student.DoesNotExist:
+        return Response({"error": "Student not found"}, status=404)
+
+    if student.status == "done":
+        return Response({"error": "This student has already completed the quiz"}, status=403)
+
+    student.score = score
     student.status = "done"
-    return Response({"Quiz submitted successfully!"})
+    student.save()
+    
+    return Response({"message": "Quiz submitted successfully!"})
+
